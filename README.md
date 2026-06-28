@@ -1,0 +1,56 @@
+# Juego para Vacilar
+
+Una app web móvil que reúne varios juegos sociales para compartir un solo teléfono. La portada, navegación y experiencia de acceso viven en este repositorio; cada juego mantiene su desarrollo independiente.
+
+## Juegos incluidos
+
+- [Pirámide](https://github.com/mfuentespagliero/PIRAMIDE-MOBILE)
+- [El Impostor](https://github.com/mfuentespagliero/IMPOSTOR-MOBILE)
+- [Cuarto Rey](https://github.com/mfuentespagliero/CUARTO-REY-MOBILE)
+
+Los juegos están conectados mediante **submódulos Git**. Así pueden evolucionar y publicarse por separado sin duplicar su historial dentro de este proyecto.
+
+## Abrir el proyecto
+
+Clona el repositorio incluyendo sus submódulos:
+
+```bash
+git clone --recurse-submodules https://github.com/mfuentespagliero/juego-para-vacilar.git
+cd juego-para-vacilar
+```
+
+Luego abre `index.html` directamente o sirve la carpeta con cualquier servidor estático.
+
+Si ya clonaste el proyecto sin los juegos:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Actualizar los juegos manualmente
+
+```bash
+git submodule update --remote --merge
+git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE
+git commit -m "chore: actualizar juegos"
+```
+
+El workflow `Actualizar juegos` también revisa automáticamente las ramas `main` de los tres repositorios y actualiza sus referencias cuando hay cambios publicados.
+
+## Publicación
+
+GitHub Actions construye y publica la app completa en GitHub Pages. La portada se encuentra en la raíz y cada juego se carga desde su submódulo dentro del contenedor común.
+
+Sitio previsto: <https://mfuentespagliero.github.io/juego-para-vacilar/>
+
+## Estructura
+
+```text
+├── index.html                  # Menú principal
+├── play.html                   # Contenedor común de juego
+├── css/ js/ assets/            # Identidad y lógica del hub
+├── PIRAMIDE-MOBILE/            # Submódulo
+├── IMPOSTOR-MOBILE/            # Submódulo
+├── CUARTO-REY-MOBILE/          # Submódulo
+└── .github/workflows/          # Actualización y despliegue
+```

@@ -1,0 +1,12 @@
+[submodule "PIRAMIDE-MOBILE"]
+	path = PIRAMIDE-MOBILE
+	url = https://github.com/mfuentespagliero/PIRAMIDE-MOBILE.git
+	branch = main
+[submodule "IMPOSTOR-MOBILE"]
+	path = IMPOSTOR-MOBILE
+	url = https://github.com/mfuentespagliero/IMPOSTOR-MOBILE.git
+	branch = main
+[submodule "CUARTO-REY-MOBILE"]
+	path = CUARTO-REY-MOBILE
+	url = https://github.com/mfuentespagliero/CUARTO-REY-MOBILE.git
+	branch = main

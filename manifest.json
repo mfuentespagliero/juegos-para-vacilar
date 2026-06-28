@@ -1,0 +1,20 @@
+{
+  "name": "Juego para Vacilar",
+  "short_name": "Vacilar",
+  "description": "Tres juegos sociales para compartir un solo teléfono.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0d0921",
+  "theme_color": "#0d0921",
+  "icons": [
+    {
+      "src": "assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#0d0921">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="Juego para Vacilar: tres juegos sociales para compartir un solo teléfono.">
+  <title>Juego para Vacilar</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icons/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="hero">
+      <div class="brand-mark" aria-hidden="true">
+        <span class="brand-card brand-card-left"></span>
+        <span class="brand-card brand-card-center">V</span>
+        <span class="brand-card brand-card-right"></span>
+      </div>
+      <p class="eyebrow">La previa empieza aquí</p>
+      <h1>JUEGO PARA<br><span>VACILAR</span></h1>
+      <p class="intro">Tres juegos, un teléfono<br>y tu grupo haciendo el resto.</p>
+    </header>
+
+    <section class="game-menu" aria-labelledby="games-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Elige tu caos</p>
+          <h2 id="games-title">¿Qué jugamos?</h2>
+        </div>
+        <span class="game-count" aria-label="3 juegos disponibles">3 juegos</span>
+      </div>
+
+      <a class="game-card pyramid-card" href="play.html?game=piramide" data-game="Pirámide">
+        <span class="game-art pyramid-art" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i>
+        </span>
+        <span class="game-copy">
+          <span class="game-meta">Cartas · Bluff · 3–12</span>
+          <strong>Pirámide</strong>
+          <span>Haz coincidir tus cartas, desafía y reparte cargas.</span>
+        </span>
+        <span class="open-game" aria-hidden="true">→</span>
+      </a>
+
+      <a class="game-card king-card" href="play.html?game=cuarto-rey" data-game="Cuarto Rey">
+        <span class="game-art king-art" aria-hidden="true">
+          <i class="mini-card mini-card-back"></i>
+          <i class="mini-card mini-card-front"><b>K</b><em>♛</em></i>
+        </span>
+        <span class="game-copy">
+          <span class="game-meta">Mazo · Retos · Grupo</span>
+          <strong>Cuarto Rey</strong>
+          <span>Saca una carta y cumple la regla. Sin escapatoria.</span>
+        </span>
+        <span class="open-game" aria-hidden="true">→</span>
+      </a>
+
+      <a class="game-card impostor-card" href="play.html?game=impostor" data-game="El Impostor">
+        <span class="game-art impostor-art" aria-hidden="true">
+          <i class="visor"></i><i class="body"></i><i class="leg leg-left"></i><i class="leg leg-right"></i>
+          <b>?</b>
+        </span>
+        <span class="game-copy">
+          <span class="game-meta">Deducción · Palabras · 3–20</span>
+          <strong>El Impostor</strong>
+          <span>Da una pista, finge seguridad y que no te descubran.</span>
+        </span>
+        <span class="open-game" aria-hidden="true">→</span>
+      </a>
+    </section>
+
+    <a id="continue-game" class="continue-game" href="#" hidden>
+      <span>↻</span>
+      <span><small>Tu última elección</small><strong>Continuar</strong></span>
+      <b aria-hidden="true">→</b>
+    </a>
+
+    <footer>
+      <span class="footer-dot"></span>
+      Hecho para compartir un solo teléfono
+    </footer>
+  </main>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
