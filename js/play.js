@@ -3,7 +3,7 @@
 
   const games = {
     "piramide": { name: "Pirámide", path: "PIRAMIDE-MOBILE/index.html", theme: "#17152b" },
-    "cuarto-rey": { name: "Cuarto Rey", path: "CUARTO-REY-MOBILE/index.html", theme: "#012b13" },
+    "cuarto-rey": { name: "Cuarto Rey", path: "CUARTO-REY-MOBILE/index.html", theme: "#17152b" },
     "impostor": { name: "El Impostor", path: "IMPOSTOR-MOBILE/index.html", theme: "#15152b" }
   };
 
