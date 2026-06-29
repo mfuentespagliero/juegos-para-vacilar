@@ -32,6 +32,6 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE
+          git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE LA-BOTELLITA-MOBILE
           git commit -m "chore: actualizar juegos"
           git push

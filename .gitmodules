@@ -10,3 +10,7 @@
 	path = CUARTO-REY-MOBILE
 	url = https://github.com/mfuentespagliero/CUARTO-REY-MOBILE.git
 	branch = main
+[submodule "LA-BOTELLITA-MOBILE"]
+	path = LA-BOTELLITA-MOBILE
+	url = https://github.com/mfuentespagliero/la-botellita-mobile.git
+	branch = main

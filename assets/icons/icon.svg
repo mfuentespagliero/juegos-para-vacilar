@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="112" fill="#0d0921"/>
-  <circle cx="90" cy="80" r="180" fill="#9b6dff" opacity=".26"/>
-  <g stroke="#fff8e8" stroke-width="18" stroke-linejoin="round">
-    <rect x="91" y="139" width="182" height="244" rx="35" fill="#ff4f8b" transform="rotate(-16 182 261)"/>
-    <rect x="239" y="139" width="182" height="244" rx="35" fill="#4de2c5" transform="rotate(16 330 261)"/>
-    <rect x="165" y="126" width="182" height="244" rx="35" fill="#ffd64a"/>
+  <rect width="512" height="512" rx="112" fill="#11100f"/>
+  <circle cx="420" cy="68" r="180" fill="#ff6b35" opacity=".13"/>
+  <circle cx="72" cy="470" r="190" fill="#a78bfa" opacity=".11"/>
+  <g transform="rotate(-11 256 272)">
+    <rect x="207" y="74" width="98" height="58" rx="20" fill="#d8ff5f"/>
+    <path d="M222 122h68v78c44 22 73 68 73 119v62c0 34-27 61-61 61h-92c-34 0-61-27-61-61v-62c0-51 29-97 73-119v-78Z" fill="#ff6b35" stroke="#f7f2e8" stroke-width="16" stroke-linejoin="round"/>
+    <rect x="192" y="266" width="128" height="94" rx="28" fill="#1b1917" opacity=".82"/>
+    <text x="256" y="338" text-anchor="middle" fill="#f7f2e8" font-family="Georgia,serif" font-size="78" font-weight="900">?</text>
   </g>
-  <text x="256" y="305" text-anchor="middle" fill="#39254c" font-family="Georgia,serif" font-size="150" font-weight="900">V</text>
 </svg>

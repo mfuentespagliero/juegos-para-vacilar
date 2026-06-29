@@ -1,9 +1,10 @@
 # Juegos para Vacilar
 
-Una app web móvil que reúne varios juegos sociales para compartir un solo teléfono. La portada, navegación y experiencia de acceso viven en este repositorio; cada juego mantiene su desarrollo independiente.
+Una app web móvil que reúne cuatro juegos sociales para compartir un solo teléfono. La portada, la navegación y la identidad visual viven en este repositorio; cada juego mantiene su desarrollo independiente.
 
 ## Juegos incluidos
 
+- [La Botellita](https://github.com/mfuentespagliero/la-botellita-mobile)
 - [Pirámide](https://github.com/mfuentespagliero/PIRAMIDE-MOBILE)
 - [El Impostor](https://github.com/mfuentespagliero/IMPOSTOR-MOBILE)
 - [Cuarto Rey](https://github.com/mfuentespagliero/CUARTO-REY-MOBILE)
@@ -31,11 +32,11 @@ git submodule update --init --recursive
 
 ```bash
 git submodule update --remote --merge
-git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE
+git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE LA-BOTELLITA-MOBILE
 git commit -m "chore: actualizar juegos"
 ```
 
-El workflow `Actualizar juegos` también revisa automáticamente las ramas `main` de los tres repositorios y actualiza sus referencias cuando hay cambios publicados.
+El workflow `Actualizar juegos` también revisa automáticamente las ramas `main` de los cuatro repositorios y actualiza sus referencias cuando hay cambios publicados.
 
 ## Publicación
 
@@ -49,6 +50,7 @@ Sitio previsto: <https://mfuentespagliero.github.io/juego-para-vacilar/>
 ├── index.html                  # Menú principal
 ├── play.html                   # Contenedor común de juego
 ├── css/ js/ assets/            # Identidad y lógica del hub
+├── LA-BOTELLITA-MOBILE/        # Submódulo
 ├── PIRAMIDE-MOBILE/            # Submódulo
 ├── IMPOSTOR-MOBILE/            # Submódulo
 ├── CUARTO-REY-MOBILE/          # Submódulo
