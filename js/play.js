@@ -23,7 +23,7 @@
   title.textContent = game.name;
   frame.title = game.name;
   frame.style.background = game.theme;
-  document.title = `${game.name} · Juego para Vacilar`;
+  document.title = `${game.name} · Juegos para Vacilar`;
   document.querySelector('meta[name="theme-color"]').content = game.theme;
 
   frame.addEventListener("load", () => {

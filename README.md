@@ -1,4 +1,4 @@
-# Juego para Vacilar
+# Juegos para Vacilar
 
 Una app web móvil que reúne varios juegos sociales para compartir un solo teléfono. La portada, navegación y experiencia de acceso viven en este repositorio; cada juego mantiene su desarrollo independiente.
 
