@@ -2,6 +2,8 @@
 
 Una app web móvil que reúne cuatro juegos sociales para compartir un solo teléfono. La portada, la navegación y la identidad visual viven en este repositorio; cada juego mantiene su desarrollo independiente.
 
+Sitio previsto: <https://mfuentespagliero.github.io/juego-para-vacilar/>
+
 ## Juegos incluidos
 
 - [La Botellita](https://github.com/mfuentespagliero/la-botellita-mobile)
