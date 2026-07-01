@@ -12,8 +12,7 @@ const model = {
   publicHands: {},
   busy: false,
   confirmStart: false,
-  handPanel: false,
-  handRevealed: false,
+  revealedCardId: null,
   claimPicker: false,
   claimSelection: null,
   demo: false
@@ -76,14 +75,15 @@ function cardsOf(hand) {
   return valuesOf(cards).sort((left, right) => String(left.id).localeCompare(String(right.id)));
 }
 
-function cardMarkup(card, { compact = false, hidden = false } = {}) {
+function cardMarkup(card, { compact = false, hidden = false, highlighted = false } = {}) {
   if (hidden) {
     return `<span class="playing-card card-back ${compact ? "compact" : ""}" aria-label="Carta oculta"><i>◆</i></span>`;
   }
   const used = card.used ? "used" : "";
-  return `<span class="playing-card ${card.color === "red" ? "red" : ""} ${used} ${compact ? "compact" : ""}" aria-label="${escapeHTML(card.value)} de ${escapeHTML(card.suit)}${card.used ? ", usada" : ""}">
+  return `<span class="playing-card ${card.color === "red" ? "red" : ""} ${used} ${compact ? "compact" : ""} ${highlighted && !card.used ? "match" : ""}" aria-label="${escapeHTML(card.value)} de ${escapeHTML(card.suit)}${card.used ? ", usada" : ""}${highlighted && !card.used ? ", coincide" : ""}">
     <b>${escapeHTML(card.value)}</b>
     <span>${escapeHTML(card.symbol)}</span>
+    ${highlighted && !card.used ? "<strong>Coincide</strong>" : ""}
     ${card.used ? "<em>Usada</em>" : ""}
   </span>`;
 }
@@ -132,7 +132,7 @@ function cleanupHandSubscription() {
   subscribedHandMode = "";
   model.privateHand = {};
   model.publicHands = {};
-  model.handRevealed = false;
+  model.revealedCardId = null;
 }
 
 function cleanupRoomSubscriptions() {
@@ -152,8 +152,7 @@ function leaveLocalRoom() {
     privateHand: {},
     publicHands: {},
     confirmStart: false,
-    handPanel: false,
-    handRevealed: false,
+    revealedCardId: null,
     claimPicker: false,
     claimSelection: null
   });
@@ -327,11 +326,7 @@ function settingsReadOnly(settings) {
   const isPublic = settings.handVisibility === "public";
   return `<div class="readonly-settings">
     <span><small>Visibilidad</small><strong>${isPublic ? "Visibles para todos" : "Cartas privadas"}</strong></span>
-    <span><small>Bluff</small><strong>${settings.bluffEnabled ? "Activado" : "Desactivado"}</strong></span>
     <span><small>Cartas</small><strong>${settings.cardsPerPlayer} por jugador</strong></span>
-    <span><small>Poderes</small><strong>${settings.powersEnabled ? "Activados" : "Desactivados"}</strong></span>
-    <span><small>Puntaje</small><strong>${settings.scoringEnabled !== false ? "Activado" : "Desactivado"}</strong></span>
-    <span><small>Cupo</small><strong>${settings.maxPlayers || 8} jugadores</strong></span>
     <span><small>Multiplicadores</small><strong>${(settings.floorMultipliers || [1,2,4,8,16]).map(value => `×${value}`).join(", ")}</strong></span>
   </div>`;
 }
@@ -343,9 +338,6 @@ function startSummary(settings) {
     <div><dt>Jugadores</dt><dd>${players().length}</dd></div>
     <div><dt>Cartas por jugador</dt><dd>${settings.cardsPerPlayer}</dd></div>
     <div><dt>Visibilidad</dt><dd>${visibility}</dd></div>
-    <div><dt>Bluff</dt><dd>${settings.bluffEnabled ? "Activado" : "Desactivado"}</dd></div>
-    <div><dt>Poderes</dt><dd>${settings.powersEnabled ? "Activados" : "Desactivados"}</dd></div>
-    <div><dt>Puntaje</dt><dd>${settings.scoringEnabled !== false ? "Activado" : "Desactivado"}</dd></div>
     <div><dt>Multiplicadores</dt><dd>${settings.floorMultipliers.map(value => `×${value}`).join(", ")}</dd></div>
   </dl>`;
 }
@@ -367,7 +359,6 @@ function startConfirmation(settings) {
 
 function renderLobby() {
   const settings = model.room.settings;
-  const publicMode = settings.handVisibility === "public";
   root.innerHTML = `<section class="page lobby-page">
     ${brandHeader(`<button class="icon-btn" data-action="leave-room" aria-label="Salir de la sala">×</button>`)}
 
@@ -379,7 +370,7 @@ function renderLobby() {
 
     <div class="lobby-grid">
       <section class="panel players-panel">
-        <div class="panel-heading"><div><h2>La mesa</h2><p>Comparte el código con tu grupo.</p></div><span class="count-pill">${players().length}/${settings.maxPlayers || 8}</span></div>
+        <div class="panel-heading"><div><h2>La mesa</h2><p>Comparte el código con tu grupo.</p></div><span class="count-pill">${players().length}</span></div>
         <ul class="player-list">${playerRows()}</ul>
       </section>
 
@@ -391,27 +382,6 @@ function renderLobby() {
           <label class="select-setting"><span><strong>Cartas por jugador</strong><small>Entre 3 y 6 cartas.</small></span>
             <select name="cardsPerPlayer">
               ${[3,4,5,6].map(value => `<option value="${value}" ${settings.cardsPerPlayer === value ? "selected" : ""}>${value}</option>`).join("")}
-            </select>
-          </label>
-          <label class="toggle-setting ${publicMode ? "disabled" : ""}">
-            <span><strong>Bluff</strong><small>Permite declaraciones falsas.</small></span>
-            <input type="checkbox" name="bluffEnabled" ${settings.bluffEnabled ? "checked" : ""} ${publicMode ? "disabled" : ""}>
-            <i></i>
-          </label>
-          ${publicMode ? `<p class="compatibility-note">El bluff no está disponible con las cartas visibles, porque todos pueden comprobar las coincidencias.</p>` : ""}
-          <label class="toggle-setting">
-            <span><strong>Poderes</strong><small>Habilita efectos especiales de la ronda.</small></span>
-            <input type="checkbox" name="powersEnabled" ${settings.powersEnabled ? "checked" : ""}>
-            <i></i>
-          </label>
-          <label class="toggle-setting">
-            <span><strong>Puntaje</strong><small>Registra coronas y calaveras.</small></span>
-            <input type="checkbox" name="scoringEnabled" ${settings.scoringEnabled !== false ? "checked" : ""}>
-            <i></i>
-          </label>
-          <label class="select-setting"><span><strong>Máximo de jugadores</strong><small>Entre 2 y 12.</small></span>
-            <select name="maxPlayers">
-              ${[2,3,4,5,6,7,8,9,10,11,12].map(value => `<option value="${value}" ${Number(settings.maxPlayers || 8) === value ? "selected" : ""} ${value < players().length ? "disabled" : ""}>${value}</option>`).join("")}
             </select>
           </label>
           <div class="multiplier-setting">
@@ -432,12 +402,13 @@ function renderLobby() {
 
 function pyramidMarkup() {
   const cards = model.room.pyramid?.revealedCards || {};
+  const currentCardId = model.room.game?.currentCard?.id;
   const rows = [[0], [1,2], [3,4,5], [6,7,8,9], [10,11,12,13,14]];
   return `<div class="pyramid-board" aria-label="Pirámide de cartas">
     ${rows.map(row => `<div class="pyramid-row">${row.map(position => {
       const card = cards[position];
       if (!card?.revealed) return `<span class="pyramid-card back"><i>${position === 0 ? "♛" : "◆"}</i></span>`;
-      return `<span class="pyramid-card face ${card.color === "red" ? "red" : ""}"><b>${escapeHTML(card.value)}</b><i>${escapeHTML(card.symbol)}</i></span>`;
+      return `<span class="pyramid-card face ${card.color === "red" ? "red" : ""} ${card.id === currentCardId ? "current" : ""}"><b>${escapeHTML(card.value)}</b><i>${escapeHTML(card.symbol)}</i></span>`;
     }).join("")}</div>`).join("")}
   </div>`;
 }
@@ -519,40 +490,47 @@ function targetPicker() {
   </div>`;
 }
 
-function privateHandPanel() {
-  if (!model.handPanel || model.room.settings.handVisibility !== "private") return "";
+function privateHandInline() {
+  if (model.room.settings.handVisibility !== "private") return "";
   const cards = cardsOf(model.privateHand);
-  return `<div class="hand-overlay">
-    <section class="hand-sheet panel" role="dialog" aria-modal="true" aria-labelledby="private-hand-title">
-      <button class="sheet-close" data-action="close-hand" aria-label="Cerrar">×</button>
-      <span class="eyebrow">Solo para ti</span>
-      <h2 id="private-hand-title">Mi mano</h2>
-      <p>Mantén presionado para revelar. Se ocultará al soltar o salir de la aplicación.</p>
-      <div id="private-hand-tray" class="hand-tray">${cards.map(card => cardMarkup(card, { hidden: !model.handRevealed })).join("")}</div>
-      <button class="hold-reveal" data-hold-hand ${cards.length ? "" : "disabled"}>
-        <span>◉</span><strong>Mantén presionado para revelar</strong>
-      </button>
-      <div class="hand-counts"><span>${cards.filter(card => !card.used).length} disponibles</span><span>${cards.filter(card => card.used).length} utilizadas</span></div>
-    </section>
-  </div>`;
+  return `<section class="inline-private-hand panel" aria-labelledby="private-hand-title">
+    <div class="inline-hand-heading">
+      <div><span class="eyebrow">Solo para ti</span><h2 id="private-hand-title">Mi mano</h2></div>
+      <small>Mantén una carta presionada para verla.</small>
+    </div>
+    <div id="private-hand-tray" class="hand-tray inline-hand-tray">${cards.map(card => `
+      <button class="private-card-button ${card.used ? "used" : ""}" data-hold-card data-card-id="${escapeHTML(card.id)}" aria-label="Mantén presionado para revelar esta carta">
+        ${cardMarkup(card, { hidden: model.revealedCardId !== card.id })}
+        ${card.used && model.revealedCardId !== card.id ? "<em>Usada</em>" : ""}
+      </button>`).join("")}</div>
+    <div class="hand-counts"><span>${cards.filter(card => !card.used).length} disponibles</span><span>${cards.filter(card => card.used).length} utilizadas</span></div>
+  </section>`;
 }
 
-function publicHandsPanel() {
-  if (!model.handPanel || model.room.settings.handVisibility !== "public") return "";
-  return `<div class="hand-overlay">
-    <section class="all-hands-sheet panel" role="dialog" aria-modal="true" aria-labelledby="all-hands-title">
-      <button class="sheet-close" data-action="close-hand" aria-label="Cerrar">×</button>
-      <span class="eyebrow">Estado sincronizado</span>
-      <h2 id="all-hands-title">Todas las manos</h2>
-      <div class="all-hands-list">${players().map(player => {
-        const cards = cardsOf(model.publicHands?.[player.uid]);
-        return `<article class="public-hand">
-          <header><div><strong>${escapeHTML(player.name)}</strong><small>${cards.filter(card => !card.used).length} disponibles · ${cards.filter(card => card.used).length} usadas</small></div></header>
-          <div class="hand-tray compact-tray">${cards.map(card => cardMarkup(card, { compact: true })).join("")}</div>
-        </article>`;
-      }).join("")}</div>
-    </section>
-  </div>`;
+function publicHandsInline() {
+  if (model.room.settings.handVisibility !== "public") return "";
+  const currentValue = model.room.game?.currentCard?.value || null;
+  return `<section class="inline-public-hands" aria-label="Cartas públicas">
+    <div class="inline-public-title">
+      <div><span class="eyebrow">Cartas públicas</span><h2>Manos de la mesa</h2></div>
+      <small>${currentValue ? `Coinciden los ${escapeHTML(currentValue)}` : "Todas siempre visibles"}</small>
+    </div>
+    ${players().map(player => {
+      const cards = cardsOf(model.publicHands?.[player.uid]);
+      const hasMatch = Boolean(currentValue) && cards.some(card => !card.used && card.value === currentValue);
+      return `<article class="inline-public-player panel ${hasMatch ? "has-match" : ""}">
+        <header>
+          <span class="avatar">${escapeHTML(player.name.slice(0, 2).toUpperCase())}</span>
+          <div><strong>${escapeHTML(player.name)}</strong><small>${cards.filter(card => !card.used).length} disponibles · ${cards.filter(card => card.used).length} usadas</small></div>
+          <b>${hasMatch ? "Coincide" : "Sin coincidencia"}</b>
+        </header>
+        <div class="inline-public-row">${cards.map(card => cardMarkup(card, {
+          compact: true,
+          highlighted: Boolean(currentValue) && card.value === currentValue
+        })).join("")}</div>
+      </article>`;
+    }).join("")}
+  </section>`;
 }
 
 function renderGame() {
@@ -570,16 +548,14 @@ function renderGame() {
           <span class="visibility-pill">${publicMode ? "Manos visibles" : "Manos privadas"}</span>
         </header>
         <section class="board-panel panel">${pyramidMarkup()}</section>
-        ${current ? `<section class="current-card-panel panel">
-          <div><span class="eyebrow">Carta activa</span><h2>${escapeHTML(current.value)}${escapeHTML(current.symbol)}</h2><p>Carga ×${model.room.settings.floorMultipliers[(model.room.pyramid?.currentFloor || 1) - 1]}</p></div>
-          ${cardMarkup(current)}
-        </section>` : `<p class="empty-current">El anfitrión debe revelar la siguiente carta.</p>`}
+        ${privateHandInline()}
         ${activeClaimMarkup()}
         ${lastResultMarkup()}
         <div class="game-actions">
           ${isHost() ? `<button class="btn primary" data-action="${completed ? "finish-round" : "reveal-card"}" ${activeClaim() || model.busy ? "disabled" : ""}>${completed ? "Terminar ronda" : current ? "Revelar siguiente" : "Revelar primera carta"}</button>` : ""}
           <button class="btn secondary" data-action="open-claim" ${canDeclare() && !model.busy ? "" : "disabled"}>Declarar coincidencia</button>
         </div>
+        ${publicHandsInline()}
       </main>
       <aside class="players-column panel">
         <div class="panel-heading"><div><h2>Jugadores</h2><p>Estado en tiempo real</p></div><span class="count-pill">${players().length}</span></div>
@@ -587,10 +563,7 @@ function renderGame() {
         <button class="btn ghost full" data-action="${isHost() ? "close-room" : "leave-room"}">${isHost() ? "Cerrar sala" : "Salir de la sala"}</button>
       </aside>
     </div>
-    <button class="floating-hand" data-action="open-hand"><span>${publicMode ? "▦" : "🂠"}</span><strong>${publicMode ? "Ver todas las manos" : "Mi mano"}</strong></button>
     ${targetPicker()}
-    ${privateHandPanel()}
-    ${publicHandsPanel()}
   </section>`;
 }
 
@@ -632,10 +605,10 @@ function settingsFromForm(form) {
     mode: "classic",
     handVisibility,
     cardsPerPlayer: Number(form.elements.cardsPerPlayer.value),
-    bluffEnabled: handVisibility === "public" ? false : form.elements.bluffEnabled.checked,
-    powersEnabled: form.elements.powersEnabled.checked,
-    scoringEnabled: form.elements.scoringEnabled.checked,
-    maxPlayers: Number(form.elements.maxPlayers.value),
+    bluffEnabled: handVisibility === "private",
+    powersEnabled: false,
+    scoringEnabled: true,
+    maxPlayers: 8,
     multiplierType: "double",
     floorMultipliers: [0, 1, 2, 3, 4].map(index => Number(form.elements[`floorMultiplier${index}`].value))
   };
@@ -751,16 +724,6 @@ root.addEventListener("click", event => {
       : api.acceptClaim;
     run(() => operation({ code: model.roomCode }));
   }
-  if (action === "open-hand") {
-    model.handPanel = true;
-    model.handRevealed = false;
-    render();
-  }
-  if (action === "close-hand") {
-    model.handPanel = false;
-    model.handRevealed = false;
-    render();
-  }
   if (action === "prepare-rematch") {
     run(() => api.restartOnlineRound({ code: model.roomCode }));
   }
@@ -770,21 +733,28 @@ function updatePrivateCardsVisual() {
   const tray = document.querySelector("#private-hand-tray");
   if (!tray) return;
   tray.innerHTML = cardsOf(model.privateHand)
-    .map(card => cardMarkup(card, { hidden: !model.handRevealed }))
+    .map(card => `<button class="private-card-button ${card.used ? "used" : ""}" data-hold-card data-card-id="${escapeHTML(card.id)}" aria-label="Mantén presionado para revelar esta carta">
+      ${cardMarkup(card, { hidden: model.revealedCardId !== card.id })}
+      ${card.used && model.revealedCardId !== card.id ? "<em>Usada</em>" : ""}
+    </button>`)
     .join("");
-  tray.classList.toggle("revealed", model.handRevealed);
 }
 
 root.addEventListener("pointerdown", event => {
-  if (!event.target.closest("[data-hold-hand]")) return;
+  const cardButton = event.target.closest("[data-hold-card]");
+  if (!cardButton) return;
   event.preventDefault();
-  model.handRevealed = true;
-  updatePrivateCardsVisual();
+  model.revealedCardId = cardButton.dataset.cardId;
+  const card = cardsOf(model.privateHand).find(item => item.id === model.revealedCardId);
+  if (!card) return;
+  cardButton.setPointerCapture?.(event.pointerId);
+  cardButton.innerHTML = cardMarkup(card);
+  cardButton.classList.add("revealed");
 });
 
 function concealPrivateHand() {
-  if (!model.handRevealed) return;
-  model.handRevealed = false;
+  if (!model.revealedCardId) return;
+  model.revealedCardId = null;
   updatePrivateCardsVisual();
 }
 
@@ -874,8 +844,7 @@ async function start() {
     model.user = { uid: "demo-host" };
     model.roomCode = "VACILA";
     model.room = demoRoom(demo);
-    model.handPanel = query.get("panel") === "hands";
-    model.handRevealed = query.get("reveal") === "1";
+    model.revealedCardId = query.get("reveal") === "1" ? cardsOf(model.privateHand)[0]?.id || null : null;
     render();
     return;
   }
@@ -895,8 +864,7 @@ async function start() {
     if (session?.code) {
       try {
         await firebaseService.restoreRoomClient(session.code);
-        model.handPanel = false;
-        model.handRevealed = false;
+        model.revealedCardId = null;
         subscribeRoomState(session.code);
       } catch (error) {
         clearSession();

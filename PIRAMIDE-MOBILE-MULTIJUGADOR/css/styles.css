@@ -21,6 +21,7 @@
 html {
   min-height: 100%;
   background: var(--bg);
+  touch-action: pan-x pan-y;
 }
 
 body {
@@ -30,12 +31,14 @@ body {
   color: var(--ink);
   background: var(--bg);
   -webkit-tap-highlight-color: transparent;
+  touch-action: pan-x pan-y;
 }
 
 button,
 input,
 select {
   font: inherit;
+  font-size: 16px;
 }
 
 button {
@@ -909,6 +912,12 @@ code {
   color: #d64146;
 }
 
+.pyramid-card.face.current {
+  z-index: 2;
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 0 0 3px rgba(216, 255, 95, .28), 0 0 22px rgba(216, 255, 95, .68), 0 7px 12px rgba(0, 0, 0, .34);
+}
+
 .pyramid-card.face b,
 .pyramid-card.face i {
   font-size: .9rem;
@@ -983,6 +992,29 @@ code {
 .playing-card.compact b,
 .playing-card.compact > span {
   font-size: .95rem;
+}
+
+.playing-card.match:not(.used) {
+  z-index: 2;
+  border-color: var(--lime);
+  transform: translateY(-4px) scale(1.04);
+  box-shadow: 0 0 0 3px rgba(216, 255, 95, .2), 0 0 20px rgba(216, 255, 95, .58), 0 5px 0 var(--lime-dark);
+}
+
+.playing-card > strong {
+  position: absolute;
+  bottom: -15px;
+  left: 50%;
+  padding: 2px 5px;
+  border-radius: 5px;
+  color: #181a10;
+  background: var(--lime);
+  font-size: .46rem;
+  font-weight: 1000;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .playing-card.card-back {
@@ -1204,6 +1236,160 @@ code {
   border: 1px solid var(--line);
   border-radius: 20px;
   background: rgba(0, 0, 0, .16);
+}
+
+.inline-private-hand {
+  margin-top: 14px;
+  padding: 16px;
+}
+
+.inline-hand-heading {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.inline-hand-heading h2 {
+  margin: 3px 0 0;
+  font-size: 1.25rem;
+}
+
+.inline-hand-heading > small {
+  max-width: 190px;
+  color: var(--muted);
+  font-size: .68rem;
+  line-height: 1.35;
+  text-align: right;
+}
+
+.inline-hand-tray {
+  min-height: 112px;
+  justify-content: flex-start;
+  scroll-snap-type: x proximity;
+}
+
+.private-card-button {
+  position: relative;
+  padding: 0;
+  flex: 0 0 auto;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  scroll-snap-align: center;
+}
+
+.private-card-button .playing-card {
+  pointer-events: none;
+  transition: transform .14s ease, filter .14s ease;
+}
+
+.private-card-button:active .playing-card {
+  transform: translateY(-4px) scale(1.02);
+}
+
+.private-card-button > em {
+  position: absolute;
+  right: 6px;
+  bottom: 6px;
+  padding: 3px 6px;
+  border-radius: 7px;
+  color: #fff;
+  background: rgba(17, 16, 15, .82);
+  font-size: .55rem;
+  font-style: normal;
+  font-weight: 900;
+  pointer-events: none;
+}
+
+.inline-public-hands {
+  margin-top: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.inline-public-title {
+  padding: 0 4px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inline-public-title h2 {
+  margin: 3px 0 0;
+  font-size: 1.08rem;
+}
+
+.inline-public-title > small {
+  color: var(--lime);
+  font-size: .7rem;
+  font-weight: 900;
+  text-align: right;
+}
+
+.inline-public-player {
+  padding: 12px;
+  overflow: hidden;
+  transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+}
+
+.inline-public-player.has-match {
+  border-color: rgba(216, 255, 95, .5);
+  background: linear-gradient(145deg, rgba(64, 70, 35, .45), rgba(27, 25, 23, .96));
+  box-shadow: 0 0 24px rgba(216, 255, 95, .08);
+}
+
+.inline-public-player > header {
+  margin-bottom: 11px;
+  display: grid;
+  grid-template-columns: 42px 1fr auto;
+  align-items: center;
+  gap: 9px;
+}
+
+.inline-public-player > header > div {
+  display: grid;
+}
+
+.inline-public-player > header small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: .66rem;
+}
+
+.inline-public-player > header > b {
+  padding: 5px 7px;
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, .05);
+  font-size: .58rem;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
+.inline-public-player.has-match > header > b {
+  color: #181a10;
+  background: var(--lime);
+}
+
+.inline-public-row {
+  padding: 7px 5px 20px;
+  display: flex;
+  gap: 9px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x proximity;
+}
+
+.inline-public-row .playing-card {
+  flex: 0 0 51px;
+  scroll-snap-align: center;
 }
 
 .hold-reveal {

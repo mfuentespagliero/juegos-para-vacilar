@@ -5,7 +5,7 @@
     "rooms": {
       "$roomCode": {
         ".read": "auth != null && (!data.exists() || data.child('players').child(auth.uid).exists())",
-        ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() === auth.uid && newData.child('players').child(auth.uid).exists()) || (data.exists() && !newData.exists() && data.child('hostUid').val() === auth.uid))",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() === auth.uid && newData.child('players').child(auth.uid).exists()) || (data.exists() && data.child('hostUid').val() === auth.uid))",
         "code": {
           ".read": "auth != null",
           ".validate": "newData.isString() && newData.val() === $roomCode"
@@ -60,7 +60,10 @@
         },
         "publicHands": {
           ".read": "auth != null && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
-          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)",
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid && !newData.exists()"
+          }
         },
         "version": {
           ".validate": "newData.isNumber()"
@@ -72,6 +75,7 @@
     },
     "privateHands": {
       "$roomCode": {
+        ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid",
         "$uid": {
           ".read": "auth != null && auth.uid === $uid && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
           ".write": "auth != null && ((auth.uid === $uid && !newData.exists()) || root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
@@ -86,6 +90,7 @@
     },
     "claimProofs": {
       "$roomCode": {
+        ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid",
         "$claimId": {
           ".read": "auth != null && (data.child('claimantUid').val() === auth.uid || data.child('targetUid').val() === auth.uid)",
           ".write": "auth != null && ((!data.exists() && newData.child('claimantUid').val() === auth.uid) || (data.exists() && (data.child('claimantUid').val() === auth.uid || data.child('targetUid').val() === auth.uid || root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid)))"
