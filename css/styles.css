@@ -267,6 +267,11 @@ body {
   --accent-soft: rgba(167, 139, 250, .12);
 }
 
+.online-card {
+  --accent: var(--lime);
+  --accent-soft: rgba(216, 255, 95, .09);
+}
+
 .king-card {
   --accent: var(--lime);
   --accent-soft: rgba(216, 255, 95, .09);
@@ -405,6 +410,27 @@ body {
 .pyramid-art i:nth-child(4) { left: 8px; top: 71px; transform: rotate(-7deg); }
 .pyramid-art i:nth-child(5) { left: 34px; top: 70px; }
 .pyramid-art i:nth-child(6) { right: 7px; top: 71px; transform: rotate(7deg); }
+
+.online-art i {
+  background: linear-gradient(145deg, var(--orange), #c34820);
+  box-shadow: 0 4px 0 #702614;
+}
+
+.online-signal {
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  z-index: 4;
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border-radius: 9px;
+  color: #15170e;
+  background: var(--lime);
+  font-size: 1rem;
+  transform: rotate(8deg);
+}
 
 .mini-card {
   position: absolute;

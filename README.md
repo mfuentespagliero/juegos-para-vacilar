@@ -1,11 +1,12 @@
 # Juegos para Vacilar
 
-Una app web móvil que reúne cuatro juegos sociales para compartir un solo teléfono. La portada, la navegación y la identidad visual viven en este repositorio; cada juego mantiene su desarrollo independiente.
+Una app web móvil que reúne cinco experiencias sociales para jugar en grupo. La portada, la navegación y la identidad visual viven en este repositorio; cada juego mantiene su desarrollo independiente.
 
 ## Juegos incluidos
 
 - [La Botellita](https://github.com/mfuentespagliero/la-botellita-mobile)
-- [Pirámide](https://github.com/mfuentespagliero/PIRAMIDE-MOBILE)
+- [Pirámide Simple](https://github.com/mfuentespagliero/PIRAMIDE-MOBILE)
+- **Pirámide Multijugador:** versión online con salas, anfitrión, manos privadas o públicas y backend Firebase autoritativo.
 - [El Impostor](https://github.com/mfuentespagliero/IMPOSTOR-MOBILE)
 - [Cuarto Rey](https://github.com/mfuentespagliero/CUARTO-REY-MOBILE)
 
@@ -32,7 +33,7 @@ git submodule update --init --recursive
 
 ```bash
 git submodule update --remote --merge
-git add PIRAMIDE-MOBILE IMPOSTOR-MOBILE CUARTO-REY-MOBILE LA-BOTELLITA-MOBILE
+git add PIRAMIDE-MOBILE-SIMPLE IMPOSTOR-MOBILE CUARTO-REY-MOBILE LA-BOTELLITA-MOBILE
 git commit -m "chore: actualizar juegos"
 ```
 
@@ -51,7 +52,8 @@ Sitio previsto: <https://mfuentespagliero.github.io/juego-para-vacilar/>
 ├── play.html                   # Contenedor común de juego
 ├── css/ js/ assets/            # Identidad y lógica del hub
 ├── LA-BOTELLITA-MOBILE/        # Submódulo
-├── PIRAMIDE-MOBILE/            # Submódulo
+├── PIRAMIDE-MOBILE-SIMPLE/     # Submódulo · versión local actual
+├── PIRAMIDE-MOBILE-MULTIJUGADOR/ # Base independiente para la versión online
 ├── IMPOSTOR-MOBILE/            # Submódulo
 ├── CUARTO-REY-MOBILE/          # Submódulo
 └── .github/workflows/          # Actualización y despliegue

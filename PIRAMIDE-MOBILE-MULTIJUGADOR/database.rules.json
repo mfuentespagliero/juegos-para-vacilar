@@ -1,0 +1,83 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$roomCode": {
+        ".read": "auth !== null && data.child('players').child(auth.uid).exists()",
+        "players": {
+          "$uid": {
+            ".write": "auth !== null && auth.uid === $uid && data.exists() && newData.exists()",
+            ".validate": "newData.hasChildren(['uid','name','role','joinedAt','connected','lastSeen','skulls','crowns','availableCards','usedCards','claimsMade','successfulBluffs','failedBluffs','correctChallenges','incorrectChallenges'])",
+            "uid": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "name": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "role": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "joinedAt": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "connected": {
+              ".validate": "newData.isBoolean()"
+            },
+            "lastSeen": {
+              ".validate": "newData.isNumber()"
+            },
+            "skulls": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "crowns": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "availableCards": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "usedCards": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "claimsMade": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "successfulBluffs": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "failedBluffs": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "correctChallenges": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "incorrectChallenges": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "powers": {
+              ".validate": "newData.val() === data.val()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".write": false
+        }
+      }
+    },
+    "privateHands": {
+      "$roomCode": {
+        "$uid": {
+          ".read": "auth !== null && auth.uid === $uid && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
+          ".write": false
+        }
+      }
+    },
+    "roomSecrets": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

@@ -1,7 +1,7 @@
 {
   "name": "Juegos para Vacilar",
   "short_name": "Vacilar",
-  "description": "Cuatro juegos sociales para compartir un solo teléfono.",
+  "description": "Cinco experiencias sociales para jugar en grupo.",
   "lang": "es",
   "start_url": "./index.html",
   "scope": "./",

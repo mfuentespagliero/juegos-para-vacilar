@@ -1,5 +1,5 @@
-[submodule "PIRAMIDE-MOBILE"]
-	path = PIRAMIDE-MOBILE
+[submodule "PIRAMIDE-MOBILE-SIMPLE"]
+	path = PIRAMIDE-MOBILE-SIMPLE
 	url = https://github.com/mfuentespagliero/PIRAMIDE-MOBILE.git
 	branch = main
 [submodule "IMPOSTOR-MOBILE"]

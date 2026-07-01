@@ -1,0 +1,14 @@
+{
+  "name": "Pirámide Multijugador",
+  "short_name": "Pirámide Multi",
+  "description": "Base para la versión online de Pirámide Multijugador.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#11100f",
+  "theme_color": "#11100f",
+  "icons": [
+    {"src":"assets/icons/icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
