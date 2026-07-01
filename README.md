@@ -2,7 +2,7 @@
 
 Una app web móvil que reúne cinco experiencias sociales para jugar en grupo. La portada, la navegación y la identidad visual viven en este repositorio; cada juego mantiene su desarrollo independiente.
 
-Sitio previsto: <https://mfuentespagliero.github.io/juegos-para-vacilar/>
+Sitio previsto: vacila.cl
 
 ## Juegos incluidos
 
