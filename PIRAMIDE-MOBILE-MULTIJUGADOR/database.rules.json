@@ -4,80 +4,93 @@
     ".write": false,
     "rooms": {
       "$roomCode": {
-        ".read": "auth !== null && data.child('players').child(auth.uid).exists()",
+        ".read": "auth != null && (!data.exists() || data.child('players').child(auth.uid).exists())",
+        ".write": "auth != null && ((!data.exists() && newData.child('hostUid').val() === auth.uid && newData.child('players').child(auth.uid).exists()) || (data.exists() && !newData.exists() && data.child('hostUid').val() === auth.uid))",
+        "code": {
+          ".read": "auth != null",
+          ".validate": "newData.isString() && newData.val() === $roomCode"
+        },
+        "hostUid": {
+          ".read": "auth != null",
+          ".validate": "newData.isString() && (!data.exists() || newData.val() === data.val())"
+        },
+        "status": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid",
+          ".validate": "newData.val() === 'lobby' || newData.val() === 'preparing' || newData.val() === 'playing' || newData.val() === 'finished'"
+        },
+        "phase": {
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('claimantUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
+        },
+        "createdAt": {
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() === data.val())"
+        },
+        "updatedAt": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
+          ".validate": "newData.isNumber()"
+        },
+        "expiresAt": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid",
+          ".validate": "newData.isNumber()"
+        },
+        "settings": {
+          ".read": "auth != null",
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid && root.child('rooms').child($roomCode).child('status').val() === 'lobby'",
+          ".validate": "newData.hasChildren(['mode','cardsPerPlayer','floorMultipliers','handVisibility','bluffEnabled','maxPlayers']) && (newData.child('handVisibility').val() === 'private' || newData.child('handVisibility').val() === 'public') && newData.child('cardsPerPlayer').isNumber() && newData.child('cardsPerPlayer').val() >= 3 && newData.child('cardsPerPlayer').val() <= 6 && newData.child('maxPlayers').isNumber() && newData.child('maxPlayers').val() >= 2 && newData.child('maxPlayers').val() <= 12 && !(newData.child('handVisibility').val() === 'public' && newData.child('bluffEnabled').val() === true)"
+        },
         "players": {
+          ".read": "auth != null",
           "$uid": {
-            ".write": "auth !== null && auth.uid === $uid && data.exists() && newData.exists()",
-            ".validate": "newData.hasChildren(['uid','name','role','joinedAt','connected','lastSeen','skulls','crowns','availableCards','usedCards','claimsMade','successfulBluffs','failedBluffs','correctChallenges','incorrectChallenges'])",
-            "uid": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "name": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "role": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "joinedAt": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "connected": {
-              ".validate": "newData.isBoolean()"
-            },
-            "lastSeen": {
-              ".validate": "newData.isNumber()"
-            },
-            "skulls": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "crowns": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "availableCards": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "usedCards": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "claimsMade": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "successfulBluffs": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "failedBluffs": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "correctChallenges": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "incorrectChallenges": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "powers": {
-              ".validate": "newData.val() === data.val()"
-            },
-            "$other": {
-              ".validate": false
-            }
+            ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || (auth.uid === $uid && ((!data.exists() && root.child('rooms').child($roomCode).child('status').val() === 'lobby') || !newData.exists() || (data.exists() && newData.exists() && newData.child('uid').val() === data.child('uid').val() && newData.child('name').val() === data.child('name').val() && newData.child('role').val() === data.child('role').val() && newData.child('joinedAt').val() === data.child('joinedAt').val() && newData.child('skulls').val() === data.child('skulls').val() && newData.child('crowns').val() === data.child('crowns').val() && newData.child('availableCards').val() === data.child('availableCards').val() && newData.child('usedCards').val() === data.child('usedCards').val() && newData.child('claimsMade').val() === data.child('claimsMade').val() && newData.child('successfulBluffs').val() === data.child('successfulBluffs').val() && newData.child('failedBluffs').val() === data.child('failedBluffs').val() && newData.child('correctChallenges').val() === data.child('correctChallenges').val() && newData.child('incorrectChallenges').val() === data.child('incorrectChallenges').val()))) || (auth.uid === $uid && root.child('rooms').child($roomCode).child('activeClaim').child('claimantUid').val() === auth.uid) || (root.child('rooms').child($roomCode).child('players').child(auth.uid).exists() && root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid))",
+            ".validate": "!newData.exists() || (newData.hasChildren(['uid','name','role','joinedAt','connected','lastSeen','skulls','crowns','availableCards','usedCards']) && newData.child('uid').val() === $uid && (!data.exists() || (newData.child('uid').val() === data.child('uid').val() && newData.child('name').val() === data.child('name').val() && newData.child('role').val() === data.child('role').val() && newData.child('joinedAt').val() === data.child('joinedAt').val())))"
           }
         },
+        "pyramid": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid"
+        },
+        "game": {
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
+        },
+        "activeClaim": {
+          ".write": "auth != null && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists() && ((!data.exists() && newData.child('claimantUid').val() === auth.uid) || (data.exists() && (data.child('claimantUid').val() === auth.uid || data.child('targetUid').val() === auth.uid || root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid)))"
+        },
+        "actionHistory": {
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
+        },
+        "publicHands": {
+          ".read": "auth != null && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
+          ".write": "auth != null && (root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
+        },
+        "version": {
+          ".validate": "newData.isNumber()"
+        },
         "$other": {
-          ".write": false
+          ".validate": false
         }
       }
     },
     "privateHands": {
       "$roomCode": {
         "$uid": {
-          ".read": "auth !== null && auth.uid === $uid && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
-          ".write": false
+          ".read": "auth != null && auth.uid === $uid && root.child('rooms').child($roomCode).child('players').child(auth.uid).exists()",
+          ".write": "auth != null && ((auth.uid === $uid && !newData.exists()) || root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid || root.child('rooms').child($roomCode).child('activeClaim').child('targetUid').val() === auth.uid)"
         }
       }
     },
-    "roomSecrets": {
-      ".read": false,
-      ".write": false
+    "hostState": {
+      "$roomCode": {
+        ".read": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid",
+        ".write": "auth != null && root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid"
+      }
+    },
+    "claimProofs": {
+      "$roomCode": {
+        "$claimId": {
+          ".read": "auth != null && (data.child('claimantUid').val() === auth.uid || data.child('targetUid').val() === auth.uid)",
+          ".write": "auth != null && ((!data.exists() && newData.child('claimantUid').val() === auth.uid) || (data.exists() && (data.child('claimantUid').val() === auth.uid || data.child('targetUid').val() === auth.uid || root.child('rooms').child($roomCode).child('hostUid').val() === auth.uid)))"
+        }
+      }
     }
   }
 }

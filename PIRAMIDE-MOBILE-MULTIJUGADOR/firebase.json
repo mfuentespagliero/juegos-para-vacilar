@@ -2,10 +2,6 @@
   "database": {
     "rules": "database.rules.json"
   },
-  "functions": {
-    "source": "functions",
-    "runtime": "nodejs20"
-  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -14,6 +10,7 @@
       ".firebaserc",
       ".firebaserc.example",
       "functions/**",
+      "tests/**",
       "**/.*",
       "**/node_modules/**"
     ],
@@ -35,9 +32,6 @@
     },
     "database": {
       "port": 9000
-    },
-    "functions": {
-      "port": 5001
     },
     "hosting": {
       "port": 5000

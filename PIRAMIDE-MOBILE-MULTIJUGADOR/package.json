@@ -3,11 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test:functions": "npm --prefix functions test",
     "test:rules": "firebase emulators:exec --project vacila-cb462 --only database \"node --test tests/rules.test.mjs\"",
-    "test": "npm run test:functions && npm run test:rules",
-    "emulators": "firebase emulators:start --project vacila-cb462",
-    "deploy": "firebase deploy --project vacila-cb462"
+    "test": "npm run test:rules",
+    "emulators": "firebase emulators:start --project vacila-cb462 --only auth,database,hosting",
+    "deploy": "firebase deploy --project vacila-cb462 --only database"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.0",

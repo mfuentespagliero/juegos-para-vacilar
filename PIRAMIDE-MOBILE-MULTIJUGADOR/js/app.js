@@ -15,6 +15,7 @@ const model = {
   handPanel: false,
   handRevealed: false,
   claimPicker: false,
+  claimSelection: null,
   demo: false
 };
 
@@ -60,6 +61,16 @@ function isHost() {
   return model.room?.hostUid === model.user?.uid;
 }
 
+function activeClaim() {
+  return model.room?.activeClaim || null;
+}
+
+function hostOfflineMarkup() {
+  const host = model.room?.players?.[model.room?.hostUid];
+  if (!host || host.connected !== false) return "";
+  return `<p class="connection-warning">El anfitrión está sin conexión. La partida continuará cuando vuelva.</p>`;
+}
+
 function cardsOf(hand) {
   const cards = hand?.cards || hand || {};
   return valuesOf(cards).sort((left, right) => String(left.id).localeCompare(String(right.id)));
@@ -91,18 +102,28 @@ function reportFirebaseError(context, error) {
 
 function setSession(code, name) {
   localStorage.setItem(SESSION_KEY, JSON.stringify({ code, name }));
+  localStorage.setItem("pyramidRoomCode", code);
+  localStorage.setItem("pyramidPlayerUid", model.user?.uid || "");
+  localStorage.setItem("pyramidPlayerName", String(name || ""));
 }
 
 function readSession() {
   try {
-    return JSON.parse(localStorage.getItem(SESSION_KEY));
+    const legacy = JSON.parse(localStorage.getItem(SESSION_KEY));
+    if (legacy?.code) return legacy;
+    const code = localStorage.getItem("pyramidRoomCode");
+    return code ? { code, name: localStorage.getItem("pyramidPlayerName") || "" } : null;
   } catch {
-    return null;
+    const code = localStorage.getItem("pyramidRoomCode");
+    return code ? { code, name: localStorage.getItem("pyramidPlayerName") || "" } : null;
   }
 }
 
 function clearSession() {
   localStorage.removeItem(SESSION_KEY);
+  localStorage.removeItem("pyramidRoomCode");
+  localStorage.removeItem("pyramidPlayerUid");
+  localStorage.removeItem("pyramidPlayerName");
 }
 
 function cleanupHandSubscription() {
@@ -133,7 +154,8 @@ function leaveLocalRoom() {
     confirmStart: false,
     handPanel: false,
     handRevealed: false,
-    claimPicker: false
+    claimPicker: false,
+    claimSelection: null
   });
   render();
 }
@@ -236,12 +258,12 @@ function renderConfiguration() {
     <article class="config-card panel">
       <span class="eyebrow">Configuración requerida</span>
       <h1>Conecta Firebase</h1>
-      <p>La versión online está implementada, pero necesita las credenciales públicas de tu proyecto para conectarse.</p>
+      <p>La versión online necesita las credenciales públicas de Firebase para conectarse.</p>
       <ol>
         <li>Crea una app web en Firebase.</li>
         <li>Activa Authentication anónima y Realtime Database.</li>
         <li>Copia la configuración en <code>js/firebase-config.js</code>.</li>
-        <li>Despliega reglas y funciones con <code>npm run deploy</code>.</li>
+        <li>Publica las reglas con <code>firebase deploy --only database</code>.</li>
       </ol>
       <p class="config-note">Puedes revisar la interfaz sin backend abriendo <code>?demo=lobby</code>, <code>?demo=private</code> o <code>?demo=public</code>.</p>
     </article>
@@ -307,6 +329,10 @@ function settingsReadOnly(settings) {
     <span><small>Visibilidad</small><strong>${isPublic ? "Visibles para todos" : "Cartas privadas"}</strong></span>
     <span><small>Bluff</small><strong>${settings.bluffEnabled ? "Activado" : "Desactivado"}</strong></span>
     <span><small>Cartas</small><strong>${settings.cardsPerPlayer} por jugador</strong></span>
+    <span><small>Poderes</small><strong>${settings.powersEnabled ? "Activados" : "Desactivados"}</strong></span>
+    <span><small>Puntaje</small><strong>${settings.scoringEnabled !== false ? "Activado" : "Desactivado"}</strong></span>
+    <span><small>Cupo</small><strong>${settings.maxPlayers || 8} jugadores</strong></span>
+    <span><small>Multiplicadores</small><strong>${(settings.floorMultipliers || [1,2,4,8,16]).map(value => `×${value}`).join(", ")}</strong></span>
   </div>`;
 }
 
@@ -318,6 +344,8 @@ function startSummary(settings) {
     <div><dt>Cartas por jugador</dt><dd>${settings.cardsPerPlayer}</dd></div>
     <div><dt>Visibilidad</dt><dd>${visibility}</dd></div>
     <div><dt>Bluff</dt><dd>${settings.bluffEnabled ? "Activado" : "Desactivado"}</dd></div>
+    <div><dt>Poderes</dt><dd>${settings.powersEnabled ? "Activados" : "Desactivados"}</dd></div>
+    <div><dt>Puntaje</dt><dd>${settings.scoringEnabled !== false ? "Activado" : "Desactivado"}</dd></div>
     <div><dt>Multiplicadores</dt><dd>${settings.floorMultipliers.map(value => `×${value}`).join(", ")}</dd></div>
   </dl>`;
 }
@@ -347,16 +375,18 @@ function renderLobby() {
       <div><span class="eyebrow">Código de sala</span><strong>${escapeHTML(model.roomCode)}</strong></div>
       <button class="copy-button" data-action="copy-code">Copiar</button>
     </section>
+    ${hostOfflineMarkup()}
 
     <div class="lobby-grid">
       <section class="panel players-panel">
-        <div class="panel-heading"><div><h2>La mesa</h2><p>Comparte el código con tu grupo.</p></div><span class="count-pill">${players().length}/12</span></div>
+        <div class="panel-heading"><div><h2>La mesa</h2><p>Comparte el código con tu grupo.</p></div><span class="count-pill">${players().length}/${settings.maxPlayers || 8}</span></div>
         <ul class="player-list">${playerRows()}</ul>
       </section>
 
       <section class="panel settings-panel">
         <div class="panel-heading"><div><h2>Configuración</h2><p>${isHost() ? "Solo tú puedes modificarla." : "El anfitrión controla estas opciones."}</p></div><span class="host-lock">⌁</span></div>
         ${isHost() ? `<form data-form="settings">
+          <input type="hidden" name="mode" value="classic">
           ${visibilitySelector(settings)}
           <label class="select-setting"><span><strong>Cartas por jugador</strong><small>Entre 3 y 6 cartas.</small></span>
             <select name="cardsPerPlayer">
@@ -369,19 +399,39 @@ function renderLobby() {
             <i></i>
           </label>
           ${publicMode ? `<p class="compatibility-note">El bluff no está disponible con las cartas visibles, porque todos pueden comprobar las coincidencias.</p>` : ""}
+          <label class="toggle-setting">
+            <span><strong>Poderes</strong><small>Habilita efectos especiales de la ronda.</small></span>
+            <input type="checkbox" name="powersEnabled" ${settings.powersEnabled ? "checked" : ""}>
+            <i></i>
+          </label>
+          <label class="toggle-setting">
+            <span><strong>Puntaje</strong><small>Registra coronas y calaveras.</small></span>
+            <input type="checkbox" name="scoringEnabled" ${settings.scoringEnabled !== false ? "checked" : ""}>
+            <i></i>
+          </label>
+          <label class="select-setting"><span><strong>Máximo de jugadores</strong><small>Entre 2 y 12.</small></span>
+            <select name="maxPlayers">
+              ${[2,3,4,5,6,7,8,9,10,11,12].map(value => `<option value="${value}" ${Number(settings.maxPlayers || 8) === value ? "selected" : ""} ${value < players().length ? "disabled" : ""}>${value}</option>`).join("")}
+            </select>
+          </label>
+          <div class="multiplier-setting">
+            <span><strong>Multiplicadores por piso</strong><small>Define la carga de cada nivel.</small></span>
+            <div class="multiplier-inputs">${(settings.floorMultipliers || [1,2,4,8,16]).map((value, index) => `<label><small>${index + 1}</small><input type="number" name="floorMultiplier${index}" min="1" max="99" value="${value}"></label>`).join("")}</div>
+          </div>
+          <button type="button" class="btn ghost full" data-action="close-room">Cerrar sala para todos</button>
         </form>` : settingsReadOnly(settings)}
       </section>
     </div>
 
-    ${isHost() ? `<button class="btn primary start-room" data-action="review-start" ${players().length < 3 || model.busy ? "disabled" : ""}>
-      ${players().length < 3 ? "Esperando al menos 3 jugadores" : "Revisar e iniciar"} <span>→</span>
+    ${isHost() ? `<button class="btn primary start-room" data-action="review-start" ${players().length < 2 || model.busy ? "disabled" : ""}>
+      ${players().length < 2 ? "Esperando al menos 2 jugadores" : "Revisar e iniciar"} <span>→</span>
     </button>` : `<div class="waiting-host"><i></i> Esperando al anfitrión…</div>`}
     ${startConfirmation(settings)}
   </section>`;
 }
 
 function pyramidMarkup() {
-  const cards = model.room.game?.pyramidCards || [];
+  const cards = model.room.pyramid?.revealedCards || {};
   const rows = [[0], [1,2], [3,4,5], [6,7,8,9], [10,11,12,13,14]];
   return `<div class="pyramid-board" aria-label="Pirámide de cartas">
     ${rows.map(row => `<div class="pyramid-row">${row.map(position => {
@@ -410,25 +460,24 @@ function currentUserHand() {
 
 function canDeclare() {
   const game = model.room.game;
-  if (!game?.currentCard || game.activeClaim || game.declaredThisCard?.[model.user.uid]) return false;
+  if (!game?.currentCard || activeClaim() || game.declaredThisCard?.[model.user.uid]) return false;
   if (model.room.settings.bluffEnabled) return true;
   return cardsOf(currentUserHand()).some(card => !card.used && card.value === game.currentCard.value);
 }
 
 function activeClaimMarkup() {
-  const claim = model.room.game?.activeClaim;
+  const claim = activeClaim();
   if (!claim) return "";
   const claimant = model.room.players[claim.claimantUid];
   const target = model.room.players[claim.targetUid];
   const isTarget = claim.targetUid === model.user.uid;
-  const publicMode = model.room.settings.handVisibility === "public";
   return `<section class="claim-banner panel">
     <span class="eyebrow">Declaración pendiente</span>
     <h3>${escapeHTML(claimant?.name)} declara ${escapeHTML(claim.claimedValue)}</h3>
     <p>Le entrega una carga ×${claim.multiplier} a <strong>${escapeHTML(target?.name)}</strong>.</p>
     ${isTarget ? `<div class="claim-actions">
       <button class="btn secondary" data-action="resolve-claim" data-decision="accept">Aceptar carga</button>
-      ${publicMode ? "" : `<button class="btn danger" data-action="resolve-claim" data-decision="challenge">Desafiar</button>`}
+      <button class="btn danger" data-action="resolve-claim" data-decision="challenge">Desafiar</button>
     </div>` : `<small>Esperando la decisión de ${escapeHTML(target?.name)}…</small>`}
   </section>`;
 }
@@ -451,10 +500,19 @@ function lastResultMarkup() {
 function targetPicker() {
   if (!model.claimPicker) return "";
   const options = players().filter(player => player.uid !== model.user.uid);
+  const matchingCards = cardsOf(currentUserHand()).filter(card =>
+    !card.used && card.value === model.room.game?.currentCard?.value
+  );
+  const selection = model.claimSelection || (matchingCards[0]?.id ?? "bluff");
   return `<div class="modal-layer">
     <section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="target-title">
       <span class="eyebrow">Tu declaración</span>
-      <h2 id="target-title">¿Quién recibe la carga?</h2>
+      <h2 id="target-title">Elige tu jugada</h2>
+      <div class="claim-card-options">
+        ${matchingCards.map(card => `<button class="choice-card ${selection === card.id ? "selected" : ""}" data-action="select-claim-card" data-card-id="${escapeHTML(card.id)}">Usar ${escapeHTML(card.value)}${escapeHTML(card.symbol)}</button>`).join("")}
+        ${model.room.settings.bluffEnabled ? `<button class="choice-card ${selection === "bluff" ? "selected" : ""}" data-action="select-claim-card" data-card-id="bluff">Hacer bluff</button>` : ""}
+      </div>
+      <h3>¿Quién recibe la carga?</h3>
       <div class="target-grid">${options.map(player => `<button data-action="select-target" data-uid="${escapeHTML(player.uid)}"><span class="avatar">${escapeHTML(player.name.slice(0,2).toUpperCase())}</span><strong>${escapeHTML(player.name)}</strong></button>`).join("")}</div>
       <button class="btn ghost full" data-action="cancel-claim">Cancelar</button>
     </section>
@@ -500,31 +558,33 @@ function publicHandsPanel() {
 function renderGame() {
   const game = model.room.game || {};
   const current = game.currentCard;
-  const completed = (game.pyramidIndex || 0) >= 15;
+  const completed = Number(model.room.pyramid?.currentIndex ?? -1) >= 14;
   const publicMode = model.room.settings.handVisibility === "public";
   root.innerHTML = `<section class="page game-page">
     ${brandHeader(`<div class="room-mini"><small>Sala</small><strong>${escapeHTML(model.roomCode)}</strong></div>`)}
+    ${hostOfflineMarkup()}
     <div class="game-layout">
       <main class="table-column">
         <header class="game-heading">
-          <div><span class="eyebrow">Ronda ${game.round || 1} · Piso ${game.currentFloor || 1}</span><h1>Pirámide</h1></div>
+          <div><span class="eyebrow">Ronda ${game.round || 1} · Piso ${model.room.pyramid?.currentFloor || 1}</span><h1>Pirámide</h1></div>
           <span class="visibility-pill">${publicMode ? "Manos visibles" : "Manos privadas"}</span>
         </header>
         <section class="board-panel panel">${pyramidMarkup()}</section>
         ${current ? `<section class="current-card-panel panel">
-          <div><span class="eyebrow">Carta activa</span><h2>${escapeHTML(current.value)}${escapeHTML(current.symbol)}</h2><p>Carga ×${model.room.settings.floorMultipliers[(game.currentFloor || 1) - 1]}</p></div>
+          <div><span class="eyebrow">Carta activa</span><h2>${escapeHTML(current.value)}${escapeHTML(current.symbol)}</h2><p>Carga ×${model.room.settings.floorMultipliers[(model.room.pyramid?.currentFloor || 1) - 1]}</p></div>
           ${cardMarkup(current)}
         </section>` : `<p class="empty-current">El anfitrión debe revelar la siguiente carta.</p>`}
         ${activeClaimMarkup()}
         ${lastResultMarkup()}
         <div class="game-actions">
-          ${isHost() ? `<button class="btn primary" data-action="${completed ? "finish-round" : "reveal-card"}" ${game.activeClaim || model.busy ? "disabled" : ""}>${completed ? "Terminar ronda" : current ? "Revelar siguiente" : "Revelar primera carta"}</button>` : ""}
+          ${isHost() ? `<button class="btn primary" data-action="${completed ? "finish-round" : "reveal-card"}" ${activeClaim() || model.busy ? "disabled" : ""}>${completed ? "Terminar ronda" : current ? "Revelar siguiente" : "Revelar primera carta"}</button>` : ""}
           <button class="btn secondary" data-action="open-claim" ${canDeclare() && !model.busy ? "" : "disabled"}>Declarar coincidencia</button>
         </div>
       </main>
       <aside class="players-column panel">
         <div class="panel-heading"><div><h2>Jugadores</h2><p>Estado en tiempo real</p></div><span class="count-pill">${players().length}</span></div>
         <ul class="game-player-list">${playerGameRows()}</ul>
+        <button class="btn ghost full" data-action="${isHost() ? "close-room" : "leave-room"}">${isHost() ? "Cerrar sala" : "Salir de la sala"}</button>
       </aside>
     </div>
     <button class="floating-hand" data-action="open-hand"><span>${publicMode ? "▦" : "🂠"}</span><strong>${publicMode ? "Ver todas las manos" : "Mi mano"}</strong></button>
@@ -555,7 +615,7 @@ function render() {
     renderHome();
     return;
   }
-  if (model.room.status === "lobby" || model.room.status === "starting") {
+  if (model.room.status === "lobby" || model.room.status === "preparing") {
     renderLobby();
     return;
   }
@@ -569,11 +629,15 @@ function render() {
 function settingsFromForm(form) {
   const handVisibility = form.elements.handVisibility.value;
   return {
+    mode: "classic",
     handVisibility,
     cardsPerPlayer: Number(form.elements.cardsPerPlayer.value),
     bluffEnabled: handVisibility === "public" ? false : form.elements.bluffEnabled.checked,
-    powersEnabled: false,
-    floorMultipliers: [1, 2, 4, 8, 16]
+    powersEnabled: form.elements.powersEnabled.checked,
+    scoringEnabled: form.elements.scoringEnabled.checked,
+    maxPlayers: Number(form.elements.maxPlayers.value),
+    multiplierType: "double",
+    floorMultipliers: [0, 1, 2, 3, 4].map(index => Number(form.elements[`floorMultiplier${index}`].value))
   };
 }
 
@@ -632,6 +696,12 @@ root.addEventListener("click", event => {
       leaveLocalRoom();
     });
   }
+  if (action === "close-room" && isHost()) {
+    run(async () => {
+      await api.closeRoom({ code: model.roomCode });
+      leaveLocalRoom();
+    });
+  }
   if (action === "review-start") {
     model.confirmStart = true;
     render();
@@ -652,16 +722,28 @@ root.addEventListener("click", event => {
   }
   if (action === "open-claim") {
     model.claimPicker = true;
+    const matching = cardsOf(currentUserHand()).find(card =>
+      !card.used && card.value === model.room.game?.currentCard?.value
+    );
+    model.claimSelection = matching?.id || "bluff";
     render();
   }
   if (action === "cancel-claim") {
     model.claimPicker = false;
+    model.claimSelection = null;
+    render();
+  }
+  if (action === "select-claim-card") {
+    model.claimSelection = button.dataset.cardId;
     render();
   }
   if (action === "select-target") {
     const targetUid = button.dataset.uid;
+    const selectedCardId = model.claimSelection === "bluff" ? null : model.claimSelection;
+    const declaredAsReal = Boolean(selectedCardId);
     model.claimPicker = false;
-    run(() => api.submitClaim({ code: model.roomCode, targetUid }));
+    model.claimSelection = null;
+    run(() => api.submitClaim({ code: model.roomCode, targetUid, selectedCardId, declaredAsReal }));
   }
   if (action === "resolve-claim") {
     const operation = button.dataset.decision === "challenge"
@@ -730,7 +812,7 @@ function demoRoom(mode) {
       code: "VACILA",
       hostUid: "demo-host",
       status: "lobby",
-      settings: { handVisibility: "private", bluffEnabled: true, powersEnabled: false, cardsPerPlayer: 4, floorMultipliers: [1,2,4,8,16] },
+      settings: { mode: "classic", handVisibility: "private", bluffEnabled: true, powersEnabled: false, scoringEnabled: true, cardsPerPlayer: 4, maxPlayers: 8, floorMultipliers: [1,2,4,8,16] },
       players: demoPlayers
     };
   }
@@ -754,14 +836,16 @@ function demoRoom(mode) {
     code: "VACILA",
     hostUid: "demo-host",
     status: "playing",
-    settings: { handVisibility: visibility, bluffEnabled: visibility === "private", powersEnabled: false, cardsPerPlayer: 4, floorMultipliers: [1,2,4,8,16] },
+    settings: { mode: "classic", handVisibility: visibility, bluffEnabled: visibility === "private", powersEnabled: false, scoringEnabled: true, cardsPerPlayer: 4, maxPlayers: 8, floorMultipliers: [1,2,4,8,16] },
     players: demoPlayers,
+    pyramid: {
+      currentIndex: 4,
+      currentFloor: 1,
+      revealedCards: Object.fromEntries(pyramidCards.filter(card => card.revealed).map(card => [card.position, card]))
+    },
+    activeClaim: null,
     game: {
       round: 1,
-      pyramidCards,
-      revealOrder: [10,11,12,13,14,6,7,8,9,3,4,5,1,2,0],
-      pyramidIndex: 5,
-      currentFloor: 1,
       currentCard: pyramidCards[14],
       declaredThisCard: {}
     }
@@ -808,8 +892,18 @@ async function start() {
     await firebaseService.initializeFirebase();
     model.user = await firebaseService.waitForUser();
     const session = readSession();
-    if (session?.code) subscribeRoomState(session.code);
-    else render();
+    if (session?.code) {
+      try {
+        await firebaseService.restoreRoomClient(session.code);
+        model.handPanel = false;
+        model.handRevealed = false;
+        subscribeRoomState(session.code);
+      } catch (error) {
+        clearSession();
+        showToast(humanizeFirebaseError(error));
+        render();
+      }
+    } else render();
   } catch (error) {
     console.error("No se pudo inicializar Firebase:", error);
     model.user = { uid: "configuration" };

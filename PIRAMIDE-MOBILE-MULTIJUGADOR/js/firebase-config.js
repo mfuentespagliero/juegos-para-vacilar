@@ -9,8 +9,6 @@ export const firebaseConfig = globalThis.__PIRAMIDE_FIREBASE_CONFIG__ || {
   measurementId: "G-PT8984TWWX"
 };
 
-export const functionsRegion = "southamerica-west1";
-
 // Actívalo únicamente cuando ejecutes Firebase Emulator Suite.
 export const useEmulators = false;
 

@@ -622,6 +622,45 @@ code {
   border-top: 1px solid var(--line);
 }
 
+.multiplier-setting {
+  padding: 10px 4px 16px;
+}
+
+.multiplier-setting > span {
+  display: grid;
+  margin-bottom: 10px;
+}
+
+.multiplier-setting small {
+  color: var(--muted);
+  font-size: .69rem;
+}
+
+.multiplier-inputs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.multiplier-inputs label {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+.multiplier-inputs input {
+  width: 100%;
+  min-width: 0;
+  padding: 9px 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--text);
+  background: rgba(255, 255, 255, .04);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
 .select-setting > span,
 .toggle-setting > span {
   display: grid;
@@ -1086,6 +1125,33 @@ code {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 9px;
+}
+
+.claim-card-options {
+  margin: 14px 0 18px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.claim-card-options .choice-card {
+  grid-template-columns: 1fr;
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  text-align: center;
+}
+
+.connection-warning {
+  margin: 0 0 14px;
+  padding: 11px 14px;
+  border: 1px solid rgba(255, 184, 77, .3);
+  border-radius: 14px;
+  color: #ffd39a;
+  background: rgba(255, 153, 51, .08);
+  font-size: .78rem;
+  font-weight: 750;
+  text-align: center;
 }
 
 .target-grid button {
