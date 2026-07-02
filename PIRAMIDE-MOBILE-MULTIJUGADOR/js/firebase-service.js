@@ -38,8 +38,8 @@ const DEFAULT_SETTINGS = Object.freeze({
   cardsPerPlayer: 4,
   multiplierType: "double",
   floorMultipliers: [1, 2, 4, 8, 16],
-  handVisibility: "private",
-  bluffEnabled: true,
+  handVisibility: "public",
+  bluffEnabled: false,
   powersEnabled: false,
   scoringEnabled: true,
   maxPlayers: 8
@@ -572,6 +572,9 @@ async function resolveClaimClient(roomCode, decision) {
   const claim = room.activeClaim;
   if (!claim || claim.targetUid !== user.uid || claim.status !== "pending") {
     throw clientError("permission-denied", "Solo el objetivo puede resolver esta declaración.");
+  }
+  if (room.settings.handVisibility === "public" && decision === "challenge") {
+    throw clientError("failed-precondition", "No se puede desafiar cuando las cartas son visibles.");
   }
   const lock = await runTransaction(ref(database, `rooms/${code}/activeClaim/status`), status => (
     status === "pending" ? "resolving" : undefined

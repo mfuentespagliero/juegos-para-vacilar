@@ -168,6 +168,17 @@
   border-color: var(--vacilar-line);
   background: linear-gradient(145deg, rgba(255, 255, 255, .055), rgba(255, 255, 255, .018));
 }
+.game-piramide .mode-card.online {
+  border-color: rgba(52, 211, 153, .42);
+  background: linear-gradient(145deg, rgba(52, 211, 153, .11), rgba(255, 255, 255, .018));
+}
+.game-piramide .mode-card.online .mode-icon {
+  color: #10251f;
+  background: linear-gradient(145deg, #76f0cd, var(--vacilar-mint));
+}
+.game-piramide .page[aria-label="Versiones de Pirámide"] > .text-button {
+  display: none;
+}
 
 .game-piramide :is(.field select, .field input, .name-field input, .modal select, .custom-multipliers input) {
   color: var(--vacilar-text);

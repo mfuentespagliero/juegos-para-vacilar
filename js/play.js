@@ -4,7 +4,7 @@
   const games = {
     "botellita": { name: "La Botellita", path: "LA-BOTELLITA-MOBILE/index.html", theme: "#11100f" },
     "piramide": { name: "Pirámide", path: "PIRAMIDE-MOBILE-SIMPLE/index.html", theme: "#11100f", bodyClass: "game-piramide" },
-    "piramide-multijugador": { name: "Pirámide Multijugador", path: "PIRAMIDE-MOBILE-MULTIJUGADOR/index.html", theme: "#11100f" },
+    "piramide-multijugador": { name: "Pirámide", path: "PIRAMIDE-MOBILE-SIMPLE/index.html", theme: "#11100f", bodyClass: "game-piramide" },
     "cuarto-rey": { name: "Cuarto Rey", path: "CUARTO-REY-MOBILE/index.html", theme: "#11100f", bodyClass: "game-cuarto-rey" },
     "impostor": { name: "El Impostor", path: "IMPOSTOR-MOBILE/index.html", theme: "#11100f", bodyClass: "game-impostor" }
   };

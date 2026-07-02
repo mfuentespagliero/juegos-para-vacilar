@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Truco - Sala</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+	<div id="app" class="container">
+		<header>
+			<h1>Truco</h1>
+			<p class="subtitle">Sala multijugador — máximo 8 personas</p>
+		</header>
+
+		<div id="connError" class="card hidden" style="background:#4b1f1f;color:#ffdcdc;margin-top:10px">
+			<strong>Servidor no conectado:</strong> Arranca el servidor con <code>npm install && npm start</code> y abre <a href="http://localhost:3000">http://localhost:3000</a>
+		</div>
+
+		<section id="lobby" class="card">
+			<div class="row">
+				<label>Tu nombre</label>
+				<input id="name" placeholder="Tu nombre" />
+			</div>
+			<div class="row">
+				<label>Sala</label>
+				<input id="room" placeholder="Nombre de sala" />
+			</div>
+			<div class="row actions">
+				<button id="joinBtn">Crear / Unirse</button>
+			</div>
+
+			<div id="roomInfo" class="hidden">
+				<h3>Sala: <span id="roomName"></span></h3>
+				<ul id="players"></ul>
+				<div class="row actions">
+					<button id="startBtn">Iniciar juego</button>
+				</div>
+			</div>
+		</section>
+
+		<section id="game" class="card hidden">
+			<h2>Juego</h2>
+			<div id="status">Esperando inicio...</div>
+			<div id="table">
+				<div id="cardsArea"></div>
+				<div class="row actions" style="margin-top:12px">
+					<button id="btnTruco">Truco</button>
+					<button id="btnEnvido">Envido</button>
+				</div>
+			</div>
+		</section>
+
+		<footer>
+			<small>Estética inspirada en "Piramide" y "Juegos para tomar"</small>
+		</footer>
+	</div>
+
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="client.js"></script>
+</body>
+</html>

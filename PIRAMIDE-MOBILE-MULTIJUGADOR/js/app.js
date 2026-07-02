@@ -11,7 +11,6 @@ const model = {
   privateHand: {},
   publicHands: {},
   busy: false,
-  confirmStart: false,
   revealedCardId: null,
   claimPicker: false,
   claimSelection: null,
@@ -151,7 +150,6 @@ function leaveLocalRoom() {
     room: null,
     privateHand: {},
     publicHands: {},
-    confirmStart: false,
     revealedCardId: null,
     claimPicker: false,
     claimSelection: null
@@ -164,7 +162,7 @@ function subscribeToHandVisibility() {
     cleanupHandSubscription();
     return;
   }
-  const visibility = model.room.settings?.handVisibility || "private";
+  const visibility = model.room.settings?.handVisibility || "public";
   if (subscribedHandMode === visibility) return;
   cleanupHandSubscription();
   subscribedHandMode = visibility;
@@ -309,15 +307,15 @@ function visibilitySelector(settings) {
   const isPublic = settings.handVisibility === "public";
   return `<fieldset class="visibility-fieldset">
     <legend>Visibilidad de las cartas</legend>
-    <label class="choice-card ${!isPublic ? "selected" : ""}">
-      <input type="radio" name="handVisibility" value="private" ${!isPublic ? "checked" : ""}>
-      <span class="choice-dot"></span>
-      <span><strong>Cartas privadas</strong><small>Cada jugador ve solamente su mano.</small></span>
-    </label>
     <label class="choice-card ${isPublic ? "selected" : ""}">
       <input type="radio" name="handVisibility" value="public" ${isPublic ? "checked" : ""}>
       <span class="choice-dot"></span>
-      <span><strong>Visibles para todos</strong><small>Todas las manos permanecen a la vista.</small></span>
+      <span><strong>Cartas visibles</strong><small>Todas las manos permanecen a la vista.</small></span>
+    </label>
+    <label class="choice-card ${!isPublic ? "selected" : ""}">
+      <input type="radio" name="handVisibility" value="private" ${!isPublic ? "checked" : ""}>
+      <span class="choice-dot"></span>
+      <span><strong>Cartas abajo</strong><small>Cada jugador mantiene su mano oculta en su teléfono.</small></span>
     </label>
   </fieldset>`;
 }
@@ -325,35 +323,8 @@ function visibilitySelector(settings) {
 function settingsReadOnly(settings) {
   const isPublic = settings.handVisibility === "public";
   return `<div class="readonly-settings">
-    <span><small>Visibilidad</small><strong>${isPublic ? "Visibles para todos" : "Cartas privadas"}</strong></span>
+    <span><small>Visibilidad</small><strong>${isPublic ? "Cartas visibles" : "Cartas abajo"}</strong></span>
     <span><small>Cartas</small><strong>${settings.cardsPerPlayer} por jugador</strong></span>
-    <span><small>Multiplicadores</small><strong>${(settings.floorMultipliers || [1,2,4,8,16]).map(value => `×${value}`).join(", ")}</strong></span>
-  </div>`;
-}
-
-function startSummary(settings) {
-  const visibility = settings.handVisibility === "public" ? "Visibles para todos" : "Cartas privadas";
-  return `<dl class="start-summary">
-    <div><dt>Modo</dt><dd>Clásico</dd></div>
-    <div><dt>Jugadores</dt><dd>${players().length}</dd></div>
-    <div><dt>Cartas por jugador</dt><dd>${settings.cardsPerPlayer}</dd></div>
-    <div><dt>Visibilidad</dt><dd>${visibility}</dd></div>
-    <div><dt>Multiplicadores</dt><dd>${settings.floorMultipliers.map(value => `×${value}`).join(", ")}</dd></div>
-  </dl>`;
-}
-
-function startConfirmation(settings) {
-  if (!model.confirmStart) return "";
-  return `<div class="modal-layer" role="presentation">
-    <section class="modal panel" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
-      <span class="eyebrow">Revisa la mesa</span>
-      <h2 id="confirm-title">¿Todo listo?</h2>
-      ${startSummary(settings)}
-      <div class="modal-actions">
-        <button class="btn ghost" data-action="cancel-start">Volver</button>
-        <button class="btn primary" data-action="confirm-start" ${model.busy ? "disabled" : ""}>Confirmar e iniciar</button>
-      </div>
-    </section>
   </div>`;
 }
 
@@ -384,19 +355,14 @@ function renderLobby() {
               ${[3,4,5,6].map(value => `<option value="${value}" ${settings.cardsPerPlayer === value ? "selected" : ""}>${value}</option>`).join("")}
             </select>
           </label>
-          <div class="multiplier-setting">
-            <span><strong>Multiplicadores por piso</strong><small>Define la carga de cada nivel.</small></span>
-            <div class="multiplier-inputs">${(settings.floorMultipliers || [1,2,4,8,16]).map((value, index) => `<label><small>${index + 1}</small><input type="number" name="floorMultiplier${index}" min="1" max="99" value="${value}"></label>`).join("")}</div>
-          </div>
           <button type="button" class="btn ghost full" data-action="close-room">Cerrar sala para todos</button>
         </form>` : settingsReadOnly(settings)}
       </section>
     </div>
 
-    ${isHost() ? `<button class="btn primary start-room" data-action="review-start" ${players().length < 2 || model.busy ? "disabled" : ""}>
-      ${players().length < 2 ? "Esperando al menos 2 jugadores" : "Revisar e iniciar"} <span>→</span>
+    ${isHost() ? `<button class="btn primary start-room" data-action="start-room" ${players().length < 2 || model.busy ? "disabled" : ""}>
+      ${players().length < 2 ? "Esperando al menos 2 jugadores" : "Iniciar partida"} <span>→</span>
     </button>` : `<div class="waiting-host"><i></i> Esperando al anfitrión…</div>`}
-    ${startConfirmation(settings)}
   </section>`;
 }
 
@@ -442,13 +408,14 @@ function activeClaimMarkup() {
   const claimant = model.room.players[claim.claimantUid];
   const target = model.room.players[claim.targetUid];
   const isTarget = claim.targetUid === model.user.uid;
+  const canChallenge = model.room.settings.handVisibility === "private";
   return `<section class="claim-banner panel">
     <span class="eyebrow">Declaración pendiente</span>
     <h3>${escapeHTML(claimant?.name)} declara ${escapeHTML(claim.claimedValue)}</h3>
     <p>Le entrega una carga ×${claim.multiplier} a <strong>${escapeHTML(target?.name)}</strong>.</p>
     ${isTarget ? `<div class="claim-actions">
       <button class="btn secondary" data-action="resolve-claim" data-decision="accept">Aceptar carga</button>
-      <button class="btn danger" data-action="resolve-claim" data-decision="challenge">Desafiar</button>
+      ${canChallenge ? `<button class="btn danger" data-action="resolve-claim" data-decision="challenge">Desafiar</button>` : ""}
     </div>` : `<small>Esperando la decisión de ${escapeHTML(target?.name)}…</small>`}
   </section>`;
 }
@@ -610,7 +577,7 @@ function settingsFromForm(form) {
     scoringEnabled: true,
     maxPlayers: 8,
     multiplierType: "double",
-    floorMultipliers: [0, 1, 2, 3, 4].map(index => Number(form.elements[`floorMultiplier${index}`].value))
+    floorMultipliers: [1, 2, 4, 8, 16]
   };
 }
 
@@ -675,16 +642,7 @@ root.addEventListener("click", event => {
       leaveLocalRoom();
     });
   }
-  if (action === "review-start") {
-    model.confirmStart = true;
-    render();
-  }
-  if (action === "cancel-start") {
-    model.confirmStart = false;
-    render();
-  }
-  if (action === "confirm-start") {
-    model.confirmStart = false;
+  if (action === "start-room") {
     run(() => api.startOnlineGame({ code: model.roomCode }));
   }
   if (action === "reveal-card") {
@@ -782,7 +740,7 @@ function demoRoom(mode) {
       code: "VACILA",
       hostUid: "demo-host",
       status: "lobby",
-      settings: { mode: "classic", handVisibility: "private", bluffEnabled: true, powersEnabled: false, scoringEnabled: true, cardsPerPlayer: 4, maxPlayers: 8, floorMultipliers: [1,2,4,8,16] },
+      settings: { mode: "classic", handVisibility: "public", bluffEnabled: false, powersEnabled: false, scoringEnabled: true, cardsPerPlayer: 4, maxPlayers: 8, floorMultipliers: [1,2,4,8,16] },
       players: demoPlayers
     };
   }

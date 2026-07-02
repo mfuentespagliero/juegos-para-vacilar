@@ -14,8 +14,8 @@ const VALID_VISIBILITY = new Set(["private", "public"]);
 const DEFAULT_SETTINGS = Object.freeze({
   mode: "classic",
   cardsPerPlayer: 4,
-  handVisibility: "private",
-  bluffEnabled: true,
+  handVisibility: "public",
+  bluffEnabled: false,
   powersEnabled: false,
   floorMultipliers: [1, 2, 4, 8, 16]
 });

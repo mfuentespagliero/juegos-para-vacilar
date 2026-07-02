@@ -11,6 +11,11 @@ const {
   resolveClaimOutcome
 } = require("../src/game");
 
+test("la configuraciÃ³n predeterminada usa cartas visibles", () => {
+  assert.equal(DEFAULT_SETTINGS.handVisibility, "public");
+  assert.equal(DEFAULT_SETTINGS.bluffEnabled, false);
+});
+
 test("la modalidad pública desactiva el bluff", () => {
   const settings = normalizeSettings({ handVisibility: "public", bluffEnabled: true });
   assert.equal(settings.handVisibility, "public");
